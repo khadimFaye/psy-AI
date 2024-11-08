@@ -1,0 +1,5 @@
+pyaudio
+flet ==0.24.1
+SpeechRecognition
+gtts
+PocketSphinx

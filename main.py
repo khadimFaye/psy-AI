@@ -1,42 +1,41 @@
 import flet as ft
 import gtts, time
 import speech_recognition as sr
-from plyer import audio
 
-import wavio as wv
+
+# import wavio as wv
 
 import os
 
 
-#Recognizer.record()
-#Recognizer.recognize_google_cloud()
 
 
-#def Registra_Audio(duration:int = 5, freq:int = 44100):
-#    audio = sd.rec(
-#        int(duration *freq),
-#        samplerate=freq,
-#        channels=2
-#    )
-#    sd.wait()
-#    return audio
-#
-#
-#def save_audio(NumPArray, rate):
-#    path = os.path.join(os.getcwd(), 'campione.wav')
-#    wv.write(file=path, data=NumPArray, rate=44100, sampwidth=2)
-#    print('salvato')
+
 
 def audio_trascrizione(*args):
     recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        recognizer.adjust_for_ambient_noise(source=source)
-        audio_data = recognizer.listen(source=source)
+    try:
+        with sr.Microphone() as source:
+            # Regola per il rumore di fondo
+            recognizer.adjust_for_ambient_noise(source)
+            print("Rumore ambientale regolato. Inizia a parlare...", end='\n')
+            
+            # Cattura l'audio
+            print("Recording....", end='\n')
+            audio_data = recognizer.listen(source)
+            print("Registrazione completata.")
+        
+        # Avvia la trascrizione
+        print("Elaborando il testo...")
+        text = recognizer.recognize_google(audio_data)
+        print("Testo trascritto:", text)
 
-    text = recognizer.recognize_sphinx(audio_data) 
-    print(text)
-    
-
+    except sr.UnknownValueError:
+        print("Non sono riuscito a comprendere l'audio.")
+    except sr.RequestError as e:
+        print(f"Errore nel servizio Sphinx: {e}")
+    except Exception as e:
+        print(f"Errore inaspettato: {e}")
 
 
 def talk(*arg):
@@ -45,12 +44,13 @@ def talk(*arg):
    
 
 class Chat(ft.Column):
-    __audio = audio
+    
     def __init__(self, page, back=None, *args):
         self.page = page
         self.back = back
+        # self.page.on_resize = self.update_window()
 
-        self.Chat_column = ft.Column(height=700, scroll=ft.ScrollMode.ALWAYS, auto_scroll=True)
+        self.Chat_column = ft.Column(expand=True, height=self.page.window.height -100 *(3), scroll=ft.ScrollMode.ALWAYS, auto_scroll=True)
 
         self.textinput = ft.TextField(
             border_color=ft.colors.PURPLE_500, border=10,
@@ -97,6 +97,9 @@ class Chat(ft.Column):
         )
     def sendMessage(self, args):
         pass
+    
+    def update_window(self, *args):
+        self.Chat_column.height = self.page.window.height -100 *3
 
     def Registra_audio(self, e):
         if e.control.icon ==ft.icons.RECORD_VOICE_OVER_ROUNDED:
@@ -111,8 +114,8 @@ class Chat(ft.Column):
             self.buttonContainer.content = self.record_button
             self.buttonContainer.update()
             self.update()
-            self.__audio.stop()
-            print(self.__audio.file_path)
+            # self.__audio.stop()
+          
     def sumbit(self, *args):
         self.Chat_column.controls.append(
             ft.Row(
@@ -121,7 +124,7 @@ class Chat(ft.Column):
                         expand = True,
                         content=ft.Text(expand=True, value=self.textinput.value, size = 15, weight=ft.FontWeight.NORMAL, color='black', text_align=ft.TextAlign.RIGHT),
                         bgcolor = 'white' ,
-                        border_radius = ft.border_radius.only(bottom_right=12, bottom_left=12, top_right=12),
+                        border_radius = ft.border_radius.only(top_left=12, bottom_left=12, bottom_right=12),
                         padding = 10
                                  )
                     
@@ -185,7 +188,7 @@ class Home(ft.Column):
 def main(page:ft.Page):
     page.title = 'Psco AI'
     page.window.height, page.window.width = (640, 340)
-
+   
     page.add(ft.Container(padding = 10, content=ft.SafeArea(Home(page))))
     page.bgcolor = ft.colors.ORANGE_800
     page.update()
