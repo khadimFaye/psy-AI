@@ -3,3 +3,9 @@ flet ==0.24.1
 SpeechRecognition
 gtts
 PocketSphinx
+openai-whisper
+wave
+huggingface_hub
+transformers
+torch
+accelerate>=0.26.0
